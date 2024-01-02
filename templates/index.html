@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rezerwacja stolikow</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+      text-align: center;
+    }
+    .container, .reservation-container {
+      width: 50%;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      margin-top: 50px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    input[type="text"], input[type="email"], input[type="number"], select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+    }
+    button {
+      background-color: #5cb85c;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #4cae4c;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<div class="container">
+  <h2>Rezerwacja stolika</h2>
+  <form id="availability-form">
+    <label for="date">Data:</label>
+    <input type="date" id="date" name="date" required>
+
+    <label for="startTime">Godzina rozpoczecia:</label>
+    <input type="time" id="startTime" name="startTime" required>
+
+    <label for="duration">Czas trwania (w godzinach):</label>
+    <input type="text" id="duration" name="duration" required pattern="^[0-9]{1,2}$" title="Proszę wpisać 1 lub 2 cyfry.">
+
+    <!--<input type="text" id="duration" name="duration" required>-->
+
+    <label for="minSeats">Minimalna liczba miejsc:</label>
+    <select id="minSeats" name="minSeats" required>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+    </select>
+
+    <button type="submit">Sprawdz dostepnosc</button>
+  </form>
+</div>
+
+<div class="reservation-container hidden" id="reservation-container">
+  <h2>Dane rezerwacji</h2>
+  <form id="reservation-form">
+    <label for="imie">Imie:</label>
+    <input type="text" id="imie" name="imie" required>
+
+    <label for="nazwisko">Nazwisko:</label>
+    <input type="text" id="nazwisko" name="nazwisko" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="telefon">Telefon:</label>
+    <input type="text" id="telefon" name="telefon" required>
+
+    <label for="uwagi">Uwagi:</label>
+    <textarea id="uwagi" name="uwagi"></textarea>
+
+    <button type="submit">Zarezerwuj Stolik</button>
+  </form>
+</div>
+
+<script>
+  // Skrypty JavaScript do obsługi formularzy
+  document.addEventListener('DOMContentLoaded', function() {
+    const availabilityForm = document.getElementById('availability-form');
+    const reservationForm = document.getElementById('reservation-form');
+    const reservationContainer = document.getElementById('reservation-container');
+
+    // Obsługa formularza dostępności
+    availabilityForm.onsubmit = function(event) {
+      event.preventDefault();
+
+      const date = document.getElementById('date').value;
+      const startTime = document.getElementById('startTime').value;
+      const duration = document.getElementById('duration').value;
+      const minSeats = document.getElementById('minSeats').value;
+
+      fetch('http://localhost:5000/check-availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ date, startTime, duration, minSeats }),
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.available) {
+                  alert("Stolik jest dostepny.");
+                  reservationContainer.classList.remove('hidden'); // Pokaż formularz rezerwacji
+                } else {
+                  alert("Brak dostepnych stolików.");
+                  reservationContainer.classList.add('hidden');
+                }
+              })
+              .catch(error => {
+                console.error('Wystapil blad:', error);
+                alert("Wystapil blad podczas sprawdzania dostepnosci.");
+              });
+    };
+
+    // Obsługa formularza rezerwacji
+    reservationForm.onsubmit = function(event) {
+      event.preventDefault();
+
+      const imie = document.getElementById('imie').value;
+      const nazwisko = document.getElementById('nazwisko').value;
+      const email = document.getElementById('email').value;
+      const telefon = document.getElementById('telefon').value;
+      const uwagi = document.getElementById('uwagi').value;
+
+      // Użyj tych samych danych, które zostały wysłane do sprawdzenia dostępności
+      const date = document.getElementById('date').value;
+      const startTime = document.getElementById('startTime').value;
+      const duration = document.getElementById('duration').value;
+      const minSeats = document.getElementById('minSeats').value;
+
+      fetch('http://localhost:5000/make-reservation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ date, startTime, duration, minSeats, imie, nazwisko, email, telefon, uwagi }),
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  alert("Rezerwacja została dokonana.");
+                  reservationContainer.classList.add('hidden'); // Ukryj formularz rezerwacji
+                  // Można tu dodać resetowanie formularzy, jeśli jest to potrzebne
+                } else {
+                  alert("Wystapił problem przy dokonywaniu rezerwacji(1).");
+                }
+              })
+              .catch(error => {
+                console.error('Wystapił bład:', error);
+                alert("Wystapił bład podczas dokonywania rezerwacji(2).");
+              });
+    };
+  });
+
+</script>
+
+
+<div class="container">
+  <h2>Sprawdz dostepnosc stolikow na pietrze (bez rezerwacji)</h2>
+  <form id="floor-availability-form">
+    <label for="date-floor">Data (YYYY-MM-DD):</label>
+    <input type="text" id="date-floor" name="date-floor" required>
+
+    <label for="floor">Numer pietra:</label>
+    <input type="text" id="floor" name="floor" required>
+
+    <button type="submit">Sprawdz dostepnosc</button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const floorForm = document.getElementById('floor-availability-form');
+
+    floorForm.onsubmit = function(event) {
+      event.preventDefault();
+
+      const date = document.getElementById('date-floor').value;
+      const floor = document.getElementById('floor').value;
+
+      fetch('http://localhost:5000/check-availability-floor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ date, floor }),
+      })
+              .then(response => response.json())
+              .then(data => {
+                if (data.error) {
+                  alert("Wystąpił błąd: " + data.error);
+                } else if (data.availableTables && data.availableTables.length > 0) {
+                  alert("Dostepne stoliki: " + data.availableTables.join(", "));
+                } else {
+                  alert("Brak dostepnych stolikow.");
+                }
+              })
+              .catch(error => {
+                console.error('Wystapił badd:', error);
+                alert("Wystapil blad podczas sprawdzania dostepnosci.");
+              });
+    };
+  });
+</script>
+
+</body>
+</html>
